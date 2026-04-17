@@ -1,5 +1,5 @@
 import tkinter as tk
-import time
+import random
 from tictactoe import initial_state, result, minimax, terminal, winner
 
 X = "X"  # Human
@@ -31,17 +31,32 @@ class TicTacToeGUI:
         self.score_label = tk.Label(
             self.root,
             text="X: 0   O: 0   Draws: 0",
-            font=("Arial", 16, "bold"),
+            font=("Arial", 14, "bold"),
             fg="white",
             bg="black"
         )
         self.score_label.grid(row=0, column=0, columnspan=3)
 
-        # BOARD FRAME
-        board_frame = tk.Frame(self.root, bg="black")
-        board_frame.grid(row=1, column=0, columnspan=3)
+        # DIFFICULTY MENU (RESTORED)
+        self.difficulty = tk.StringVar(value="Impossible")
 
-        # BUTTONS
+        diff_frame = tk.Frame(self.root, bg="black")
+        diff_frame.grid(row=1, column=0, columnspan=3)
+
+        tk.Label(diff_frame, text="Difficulty:", fg="white", bg="black").pack(side=tk.LEFT)
+
+        tk.OptionMenu(
+            diff_frame,
+            self.difficulty,
+            "Easy",
+            "Medium",
+            "Impossible"
+        ).pack(side=tk.LEFT)
+
+        # BOARD
+        board_frame = tk.Frame(self.root, bg="black")
+        board_frame.grid(row=2, column=0, columnspan=3)
+
         for i in range(3):
             for j in range(3):
                 btn = tk.Button(
@@ -59,15 +74,14 @@ class TicTacToeGUI:
                 self.buttons[i][j] = btn
 
         # RESTART BUTTON
-        restart_btn = tk.Button(
+        tk.Button(
             self.root,
             text="Restart",
-            font=("Arial", 14, "bold"),
+            font=("Arial", 12, "bold"),
             bg="gray20",
             fg="white",
             command=self.restart
-        )
-        restart_btn.grid(row=2, column=0, columnspan=3, pady=10)
+        ).grid(row=3, column=0, columnspan=3, pady=10)
 
     # ---------------- HUMAN MOVE ----------------
     def human_move(self, r, c):
@@ -83,7 +97,7 @@ class TicTacToeGUI:
         if self.check_game_over():
             return
 
-        self.root.after(300, self.ai_move)
+        self.root.after(250, self.ai_move)
 
     # ---------------- AI MOVE ----------------
     def ai_move(self):
@@ -91,13 +105,29 @@ class TicTacToeGUI:
         if terminal(self.board):
             return
 
-        move = minimax(self.board)
+        diff = self.difficulty.get()
+
+        if diff == "Easy":
+            move = random.choice(list(self.get_actions()))
+        elif diff == "Medium":
+            move = minimax(self.board) if random.random() < 0.6 else random.choice(list(self.get_actions()))
+        else:
+            move = minimax(self.board)
 
         if move:
             self.board = result(self.board, move)
 
         self.draw_board()
         self.check_game_over()
+
+    # ---------------- ACTIONS ----------------
+    def get_actions(self):
+        return {
+            (i, j)
+            for i in range(3)
+            for j in range(3)
+            if self.board[i][j] == EMPTY
+        }
 
     # ---------------- DRAW BOARD ----------------
     def draw_board(self):
@@ -121,13 +151,13 @@ class TicTacToeGUI:
     # ---------------- CLICK ANIMATION ----------------
     def animate_click(self, r, c):
         btn = self.buttons[r][c]
-
         original = btn["bg"]
+
         btn["bg"] = "yellow"
         self.root.update()
-        self.root.after(100, lambda: btn.config(bg=original))
+        self.root.after(80, lambda: btn.config(bg=original))
 
-    # ---------------- WIN ANIMATION ----------------
+    # ---------------- WIN HIGHLIGHT ----------------
     def highlight_winner(self):
         w = winner(self.board)
         if not w:
@@ -150,7 +180,7 @@ class TicTacToeGUI:
                 for r,c in line:
                     self.buttons[r][c]["bg"] = "green"
 
-    # ---------------- GAME OVER ----------------
+    # ---------------- GAME OVER (NO POPUP NOW) ----------------
     def check_game_over(self):
 
         if terminal(self.board):
@@ -161,19 +191,32 @@ class TicTacToeGUI:
 
             if w == X:
                 self.x_score += 1
-                msg = "You (X) Win!"
+                msg = "You Win!"
             elif w == O:
                 self.o_score += 1
-                msg = "AI (O) Wins!"
+                msg = "AI Wins!"
             else:
                 self.draws += 1
                 msg = "Draw!"
 
             self.update_score()
-            self.popup(msg)
+            self.show_result_on_board(msg)
             return True
 
         return False
+
+    # ---------------- SHOW RESULT ON BOARD ----------------
+    def show_result_on_board(self, msg):
+
+        overlay = tk.Label(
+            self.root,
+            text=msg,
+            font=("Arial", 20, "bold"),
+            fg="yellow",
+            bg="black"
+        )
+
+        overlay.grid(row=4, column=0, columnspan=3)
 
     # ---------------- SCORE UPDATE ----------------
     def update_score(self):
@@ -190,15 +233,6 @@ class TicTacToeGUI:
                 self.buttons[i][j]["bg"] = "black"
 
         self.draw_board()
-
-    # ---------------- POPUP ----------------
-    def popup(self, msg):
-        win = tk.Toplevel()
-        win.title("Game Over")
-
-        tk.Label(win, text=msg, font=("Arial", 18)).pack(padx=20, pady=20)
-
-        tk.Button(win, text="OK", command=win.destroy).pack(pady=10)
 
 
 # ---------------- RUN ----------------
