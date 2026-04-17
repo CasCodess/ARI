@@ -9,11 +9,14 @@ class Telecom_CSP_Solver:
 
         self.variables = [f"T{i}" for i in range(1, self.towers + 1)]
 
+        # Domain: all valid cells excluding mountains
         self.domain = {
-            var: [(r, c)
-                  for r in range(size)
-                  for c in range(size)
-                  if (r, c) not in self.mountains]
+            var: [
+                (r, c)
+                for r in range(size)
+                for c in range(size)
+                if (r, c) not in self.mountains
+            ]
             for var in self.variables
         }
 
@@ -40,31 +43,31 @@ class Telecom_CSP_Solver:
     # -------------------------
     def select_unassigned_variable(self, assignment):
         unassigned = [v for v in self.variables if v not in assignment]
-
         return min(unassigned, key=lambda var: len(self.domain[var]))
 
     # -------------------------
-    # FORWARD CHECKING
+    # FORWARD CHECKING (FIXED)
     # -------------------------
-    def forward_check(self, var, value):
+    def forward_check(self, assignment):
         new_domain = {}
 
-        for v in self.variables:
-            if v != var:
-                new_domain[v] = [
-                    cell for cell in self.domain[v]
-                    if self.is_consistent({var: value}, cell)
+        for var in self.variables:
+            if var not in assignment:
+                new_domain[var] = [
+                    cell for cell in self.domain[var]
+                    if self.is_consistent(assignment, cell)
                 ]
 
-                if not new_domain[v]:
+                if not new_domain[var]:
                     return None
 
         return new_domain
 
     # -------------------------
-    # BACKTRACKING
+    # BACKTRACKING SEARCH
     # -------------------------
     def backtrack(self, assignment):
+
         if len(assignment) == self.towers:
             return assignment
 
@@ -74,56 +77,68 @@ class Telecom_CSP_Solver:
 
             if self.is_consistent(assignment, value):
 
+                # assign
                 assignment[var] = value
 
-                old_domain = self.domain
-                new_domain = self.forward_check(var, value)
+                # forward checking with updated assignment
+                new_domain = self.forward_check(assignment)
 
                 if new_domain is not None:
+                    old_domain = self.domain
                     self.domain = new_domain
 
                     result = self.backtrack(assignment)
+
                     if result:
                         return result
 
-                assignment.pop(var)
-                self.domain = old_domain
+                    self.domain = old_domain
+
+                # undo assignment
+                del assignment[var]
 
         return None
 
 
 # -------------------------
-# VISUALISATION FUNCTION
+# VISUALISATION
 # -------------------------
 def draw_grid(solution, mountains):
     size = 10
     fig, ax = plt.subplots()
 
+    # grid lines
     for i in range(size + 1):
         ax.plot([0, size], [i, i], 'k')
         ax.plot([i, i], [0, size], 'k')
 
+    # mountains
     for (r, c) in mountains:
-        ax.text(c + 0.5, size - r - 0.5, "M",
-                ha='center', va='center',
-                color='brown', fontsize=12, fontweight='bold')
+        ax.text(
+            c + 0.5, size - r - 0.5, "M",
+            ha='center', va='center',
+            color='brown', fontsize=12, fontweight='bold'
+        )
 
-    for (var, (r, c)) in solution.items():
-        ax.text(c + 0.5, size - r - 0.5, "T",
-                ha='center', va='center',
-                color='blue', fontsize=12, fontweight='bold')
+    # towers
+    for var, (r, c) in solution.items():
+        ax.text(
+            c + 0.5, size - r - 0.5, "T",
+            ha='center', va='center',
+            color='blue', fontsize=12, fontweight='bold'
+        )
 
     ax.set_xlim(0, size)
     ax.set_ylim(0, size)
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.set_title("Telecom CSP Tower Placement")
+    ax.set_title("Telecom CSP Tower Placement (10x10 Grid)")
 
     plt.show()
 
 
 # -------------------------
-# MAIN RUN FUNCTION
+# SOLVE FUNCTION
 # -------------------------
 def solve(mountains):
     solver = Telecom_CSP_Solver(10, mountains)
