@@ -1,4 +1,4 @@
-from tictactoe import initial_state, minimax, result, print_board
+from tictactoe import initial_state, minimax, result
 
 
 def print_board(board):
