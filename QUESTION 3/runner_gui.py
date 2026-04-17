@@ -2,15 +2,15 @@ import tkinter as tk
 import random
 from tictactoe import initial_state, result, minimax, terminal, winner
 
-X = "X"
-O = "O"
+X = "X"   # Human
+O = "O"   # AI
 EMPTY = None
 
 
 class TicTacToeApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Tic Tac Toe AI")
+        self.root.title("Tic Tac Toe AI - Minimax")
         self.root.configure(bg="black")
 
         self.difficulty = tk.StringVar(value="Impossible")
@@ -26,7 +26,6 @@ class TicTacToeApp:
 
     # ---------------- MENU SCREEN ----------------
     def show_menu(self):
-
         self.clear_screen()
 
         tk.Label(
@@ -37,7 +36,12 @@ class TicTacToeApp:
             bg="black"
         ).pack(pady=20)
 
-        tk.Label(self.root, text="Select Difficulty:", fg="white", bg="black").pack()
+        tk.Label(
+            self.root,
+            text="Select Difficulty:",
+            fg="white",
+            bg="black"
+        ).pack()
 
         tk.OptionMenu(
             self.root,
@@ -72,30 +76,21 @@ class TicTacToeApp:
 
     # ---------------- GAME SCREEN ----------------
     def show_game(self):
-
         self.clear_screen()
 
         self.buttons = [[None for _ in range(3)] for _ in range(3)]
 
-        tk.Button(
-    self.root,
-    text="Restart Game",
-    bg="green",
-    fg="white",
-    command=self.restart_game
-).grid(row=3, column=0, columnspan=3, pady=5)
-
         # SCOREBOARD
         self.score_label = tk.Label(
             self.root,
-            text="X: 0   O: 0   Draws: 0",
+            text=f"X: {self.x_score}   O: {self.o_score}   Draws: {self.draws}",
             font=("Arial", 14, "bold"),
             fg="white",
             bg="black"
         )
         self.score_label.grid(row=0, column=0, columnspan=3)
 
-        # BOARD
+        # BOARD FRAME
         frame = tk.Frame(self.root, bg="black")
         frame.grid(row=1, column=0, columnspan=3)
 
@@ -114,22 +109,25 @@ class TicTacToeApp:
                 btn.grid(row=i, column=j)
                 self.buttons[i][j] = btn
 
+        # BUTTONS ROW
+        tk.Button(
+            self.root,
+            text="Restart Game",
+            bg="green",
+            fg="white",
+            command=self.restart_game
+        ).grid(row=2, column=0, columnspan=3, pady=5)
+
         tk.Button(
             self.root,
             text="Back to Menu",
             bg="gray",
             fg="white",
             command=self.show_menu
-        ).grid(row=2, column=0, columnspan=3, pady=10)
-
-
-def restart_game(self):
-    self.board = initial_state()
-    self.draw()
+        ).grid(row=3, column=0, columnspan=3, pady=5)
 
     # ---------------- HUMAN MOVE ----------------
     def human_move(self, r, c):
-
         if self.board[r][c] != EMPTY or terminal(self.board):
             return
 
@@ -151,8 +149,10 @@ def restart_game(self):
 
         if diff == "Easy":
             move = random.choice(list(self.actions()))
+
         elif diff == "Medium":
             move = minimax(self.board) if random.random() < 0.6 else random.choice(list(self.actions()))
+
         else:
             move = minimax(self.board)
 
@@ -171,9 +171,8 @@ def restart_game(self):
             if self.board[i][j] == EMPTY
         }
 
-    # ---------------- DRAW ----------------
+    # ---------------- DRAW BOARD ----------------
     def draw(self):
-
         for i in range(3):
             for j in range(3):
                 val = self.board[i][j]
@@ -188,6 +187,17 @@ def restart_game(self):
 
                 else:
                     self.buttons[i][j]["text"] = ""
+
+    # ---------------- RESTART GAME (FIXED) ----------------
+    def restart_game(self):
+        self.board = initial_state()
+        self.draw()
+
+    # ---------------- SCORE UPDATE ----------------
+    def update_score(self):
+        self.score_label.config(
+            text=f"X: {self.x_score}   O: {self.o_score}   Draws: {self.draws}"
+        )
 
     # ---------------- GAME OVER ----------------
     def check_game_over(self):
@@ -212,29 +222,26 @@ def restart_game(self):
 
         return False
 
-    # ---------------- SCORE ----------------
-    def update_score(self):
-        self.score_label.config(
-            text=f"X: {self.x_score}   O: {self.o_score}   Draws: {self.draws}"
-        )
-
-    # ---------------- RESULT ON BOARD ----------------
+    # ---------------- RESULT DISPLAY (INSIDE BOARD SCREEN) ----------------
     def show_result(self, msg):
-        tk.Label(
+
+        result_label = tk.Label(
             self.root,
             text=msg,
             font=("Arial", 18, "bold"),
             fg="yellow",
             bg="black"
-        ).grid(row=3, column=0, columnspan=3)
+        )
 
-    # ---------------- SCREEN RESET ----------------
+        result_label.grid(row=4, column=0, columnspan=3, pady=5)
+
+    # ---------------- CLEAR SCREEN ----------------
     def clear_screen(self):
         for widget in self.root.winfo_children():
             widget.destroy()
 
 
-# ---------------- RUN APP ----------------
+# ---------------- RUN ----------------
 if __name__ == "__main__":
     root = tk.Tk()
     app = TicTacToeApp(root)
