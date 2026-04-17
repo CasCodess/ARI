@@ -41,27 +41,36 @@ class Telecom_CSP_Solver:
     # -------------------------
     # MRV HEURISTIC
     # -------------------------
-    def select_unassigned_variable(self, assignment):
-        unassigned = [v for v in self.variables if v not in assignment]
-        return min(unassigned, key=lambda var: len(self.domain[var]))
+def select_unassigned_variable(self, assignment):
+    unassigned = [v for v in self.variables if v not in assignment]
+
+    # MRV + Degree heuristic (tie-breaker)
+    def score(var):
+        return (len(self.domain[var]),
+                -sum(1 for v in self.variables if v not in assignment))
+
+    return min(unassigned, key=score)
 
     # -------------------------
     # FORWARD CHECKING (FIXED)
     # -------------------------
-    def forward_check(self, assignment):
-        new_domain = {}
+def forward_check(self, assignment):
+    new_domain = {}
 
-        for var in self.variables:
-            if var not in assignment:
-                new_domain[var] = [
-                    cell for cell in self.domain[var]
-                    if self.is_consistent(assignment, cell)
-                ]
+    for var in self.variables:
+        if var not in assignment:
+            filtered = []
 
-                if not new_domain[var]:
-                    return None
+            for cell in self.domain[var]:
+                if self.is_consistent(assignment, cell):
+                    filtered.append(cell)
 
-        return new_domain
+            if not filtered:
+                return None
+
+            new_domain[var] = filtered
+
+    return new_domain
 
     # -------------------------
     # BACKTRACKING SEARCH
