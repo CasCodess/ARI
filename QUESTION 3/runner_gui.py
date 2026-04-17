@@ -77,6 +77,14 @@ class TicTacToeApp:
 
         self.buttons = [[None for _ in range(3)] for _ in range(3)]
 
+        tk.Button(
+    self.root,
+    text="Restart Game",
+    bg="green",
+    fg="white",
+    command=self.restart_game
+).grid(row=3, column=0, columnspan=3, pady=5)
+
         # SCOREBOARD
         self.score_label = tk.Label(
             self.root,
@@ -113,6 +121,11 @@ class TicTacToeApp:
             fg="white",
             command=self.show_menu
         ).grid(row=2, column=0, columnspan=3, pady=10)
+
+
+def restart_game(self):
+    self.board = initial_state()
+    self.draw()
 
     # ---------------- HUMAN MOVE ----------------
     def human_move(self, r, c):
