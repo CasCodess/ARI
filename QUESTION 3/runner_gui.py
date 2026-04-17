@@ -1,9 +1,9 @@
 import tkinter as tk
-import random
+import time
 from tictactoe import initial_state, result, minimax, terminal, winner
 
-X = "X"   # AI
-O = "O"   # Human
+X = "X"  # Human
+O = "O"  # AI
 EMPTY = None
 
 
@@ -11,8 +11,12 @@ class TicTacToeGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Tic Tac Toe AI - Minimax")
+        self.root.configure(bg="black")
 
-        self.difficulty = "Impossible"
+        # SCOREBOARD
+        self.x_score = 0
+        self.o_score = 0
+        self.draws = 0
 
         self.board = initial_state()
         self.buttons = [[None for _ in range(3)] for _ in range(3)]
@@ -23,40 +27,47 @@ class TicTacToeGUI:
     # ---------------- UI ----------------
     def create_ui(self):
 
-        # Top controls
-        top = tk.Frame(self.root)
-        top.grid(row=0, column=0, columnspan=3)
+        # SCOREBOARD
+        self.score_label = tk.Label(
+            self.root,
+            text="X: 0   O: 0   Draws: 0",
+            font=("Arial", 16, "bold"),
+            fg="white",
+            bg="black"
+        )
+        self.score_label.grid(row=0, column=0, columnspan=3)
 
-        tk.Label(top, text="Difficulty:").pack(side=tk.LEFT)
-
-        self.diff_var = tk.StringVar(value="Impossible")
-        diff_menu = tk.OptionMenu(top, self.diff_var, "Easy", "Medium", "Impossible")
-        diff_menu.pack(side=tk.LEFT)
-
-        tk.Button(top, text="Restart", command=self.restart).pack(side=tk.LEFT)
-
-        # Board buttons
-        board_frame = tk.Frame(self.root)
+        # BOARD FRAME
+        board_frame = tk.Frame(self.root, bg="black")
         board_frame.grid(row=1, column=0, columnspan=3)
 
+        # BUTTONS
         for i in range(3):
             for j in range(3):
                 btn = tk.Button(
                     board_frame,
                     text="",
-                    font=("Arial", 30),
+                    font=("Arial", 30, "bold"),
                     height=2,
                     width=5,
+                    bg="black",
+                    fg="white",
+                    activebackground="gray20",
                     command=lambda r=i, c=j: self.human_move(r, c)
                 )
                 btn.grid(row=i, column=j)
                 self.buttons[i][j] = btn
 
-    # ---------------- RESET ----------------
-    def restart(self):
-        self.board = initial_state()
-        self.clear_colors()
-        self.draw_board()
+        # RESTART BUTTON
+        restart_btn = tk.Button(
+            self.root,
+            text="Restart",
+            font=("Arial", 14, "bold"),
+            bg="gray20",
+            fg="white",
+            command=self.restart
+        )
+        restart_btn.grid(row=2, column=0, columnspan=3, pady=10)
 
     # ---------------- HUMAN MOVE ----------------
     def human_move(self, r, c):
@@ -64,13 +75,15 @@ class TicTacToeGUI:
         if self.board[r][c] != EMPTY or terminal(self.board):
             return
 
+        self.animate_click(r, c)
+
         self.board = result(self.board, (r, c))
         self.draw_board()
 
         if self.check_game_over():
             return
 
-        self.root.after(200, self.ai_move)
+        self.root.after(300, self.ai_move)
 
     # ---------------- AI MOVE ----------------
     def ai_move(self):
@@ -78,14 +91,7 @@ class TicTacToeGUI:
         if terminal(self.board):
             return
 
-        difficulty = self.diff_var.get()
-
-        if difficulty == "Easy":
-            move = random.choice(list(self.get_actions()))
-        elif difficulty == "Medium":
-            move = self.medium_ai()
-        else:
-            move = minimax(self.board)
+        move = minimax(self.board)
 
         if move:
             self.board = result(self.board, move)
@@ -93,92 +99,106 @@ class TicTacToeGUI:
         self.draw_board()
         self.check_game_over()
 
-    # ---------------- MEDIUM AI ----------------
-    def medium_ai(self):
-        # 50% optimal, 50% random
-        if random.random() < 0.5:
-            return minimax(self.board)
-        return random.choice(list(self.get_actions()))
-
-    # ---------------- ACTIONS ----------------
-    def get_actions(self):
-        return {
-            (i, j)
-            for i in range(3)
-            for j in range(3)
-            if self.board[i][j] == EMPTY
-        }
-
     # ---------------- DRAW BOARD ----------------
     def draw_board(self):
 
         for i in range(3):
             for j in range(3):
                 val = self.board[i][j]
-                self.buttons[i][j]["text"] = val if val else ""
 
-        self.highlight_winner()
+                if val == X:
+                    self.buttons[i][j]["text"] = "X"
+                    self.buttons[i][j]["fg"] = "red"
 
-    # ---------------- WIN HIGHLIGHT ----------------
+                elif val == O:
+                    self.buttons[i][j]["text"] = "O"
+                    self.buttons[i][j]["fg"] = "blue"
+
+                else:
+                    self.buttons[i][j]["text"] = ""
+                    self.buttons[i][j]["fg"] = "white"
+
+    # ---------------- CLICK ANIMATION ----------------
+    def animate_click(self, r, c):
+        btn = self.buttons[r][c]
+
+        original = btn["bg"]
+        btn["bg"] = "yellow"
+        self.root.update()
+        self.root.after(100, lambda: btn.config(bg=original))
+
+    # ---------------- WIN ANIMATION ----------------
     def highlight_winner(self):
-
         w = winner(self.board)
         if not w:
             return
 
-        lines = []
-
-        # rows
-        for i in range(3):
-            lines.append([(i, 0), (i, 1), (i, 2)])
-
-        # cols
-        for j in range(3):
-            lines.append([(0, j), (1, j), (2, j)])
-
-        # diagonals
-        lines.append([(0,0),(1,1),(2,2)])
-        lines.append([(0,2),(1,1),(2,0)])
+        lines = [
+            [(0,0),(0,1),(0,2)],
+            [(1,0),(1,1),(1,2)],
+            [(2,0),(2,1),(2,2)],
+            [(0,0),(1,0),(2,0)],
+            [(0,1),(1,1),(2,1)],
+            [(0,2),(1,2),(2,2)],
+            [(0,0),(1,1),(2,2)],
+            [(0,2),(1,1),(2,0)]
+        ]
 
         for line in lines:
-            values = [self.board[r][c] for r, c in line]
-
-            if values == [w, w, w]:
-                for r, c in line:
-                    self.buttons[r][c]["bg"] = "lightgreen"
-
-    # ---------------- CLEAR COLORS ----------------
-    def clear_colors(self):
-        for i in range(3):
-            for j in range(3):
-                self.buttons[i][j]["bg"] = "SystemButtonFace"
+            vals = [self.board[r][c] for r,c in line]
+            if vals == [w, w, w]:
+                for r,c in line:
+                    self.buttons[r][c]["bg"] = "green"
 
     # ---------------- GAME OVER ----------------
     def check_game_over(self):
 
         if terminal(self.board):
 
+            self.highlight_winner()
+
             w = winner(self.board)
 
             if w == X:
-                msg = "AI Wins!"
+                self.x_score += 1
+                msg = "You (X) Win!"
             elif w == O:
-                msg = "You Win!"
+                self.o_score += 1
+                msg = "AI (O) Wins!"
             else:
-                msg = "Tie Game!"
+                self.draws += 1
+                msg = "Draw!"
 
-            self.show_popup(msg)
+            self.update_score()
+            self.popup(msg)
             return True
 
         return False
 
-    # ---------------- POPUP ----------------
-    def show_popup(self, msg):
-        popup = tk.Toplevel()
-        popup.title("Game Over")
+    # ---------------- SCORE UPDATE ----------------
+    def update_score(self):
+        self.score_label.config(
+            text=f"X: {self.x_score}   O: {self.o_score}   Draws: {self.draws}"
+        )
 
-        tk.Label(popup, text=msg, font=("Arial", 18)).pack(padx=20, pady=20)
-        tk.Button(popup, text="Close", command=self.restart).pack(pady=10)
+    # ---------------- RESTART ----------------
+    def restart(self):
+        self.board = initial_state()
+
+        for i in range(3):
+            for j in range(3):
+                self.buttons[i][j]["bg"] = "black"
+
+        self.draw_board()
+
+    # ---------------- POPUP ----------------
+    def popup(self, msg):
+        win = tk.Toplevel()
+        win.title("Game Over")
+
+        tk.Label(win, text=msg, font=("Arial", 18)).pack(padx=20, pady=20)
+
+        tk.Button(win, text="OK", command=win.destroy).pack(pady=10)
 
 
 # ---------------- RUN ----------------
