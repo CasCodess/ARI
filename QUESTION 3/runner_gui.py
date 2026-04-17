@@ -2,30 +2,80 @@ import tkinter as tk
 import random
 from tictactoe import initial_state, result, minimax, terminal, winner
 
-X = "X"  # Human
-O = "O"  # AI
+X = "X"
+O = "O"
 EMPTY = None
 
 
-class TicTacToeGUI:
+class TicTacToeApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Tic Tac Toe AI - Minimax")
+        self.root.title("Tic Tac Toe AI")
         self.root.configure(bg="black")
 
-        # SCOREBOARD
+        self.difficulty = tk.StringVar(value="Impossible")
+
+        self.board = None
+        self.buttons = None
+
         self.x_score = 0
         self.o_score = 0
         self.draws = 0
 
+        self.show_menu()
+
+    # ---------------- MENU SCREEN ----------------
+    def show_menu(self):
+
+        self.clear_screen()
+
+        tk.Label(
+            self.root,
+            text="TIC TAC TOE AI",
+            font=("Arial", 24, "bold"),
+            fg="white",
+            bg="black"
+        ).pack(pady=20)
+
+        tk.Label(self.root, text="Select Difficulty:", fg="white", bg="black").pack()
+
+        tk.OptionMenu(
+            self.root,
+            self.difficulty,
+            "Easy",
+            "Medium",
+            "Impossible"
+        ).pack(pady=10)
+
+        tk.Button(
+            self.root,
+            text="Start Game",
+            font=("Arial", 16, "bold"),
+            bg="green",
+            fg="white",
+            command=self.start_game
+        ).pack(pady=10)
+
+        tk.Button(
+            self.root,
+            text="Quit",
+            font=("Arial", 14),
+            bg="red",
+            fg="white",
+            command=self.root.destroy
+        ).pack(pady=10)
+
+    # ---------------- START GAME ----------------
+    def start_game(self):
         self.board = initial_state()
+        self.show_game()
+
+    # ---------------- GAME SCREEN ----------------
+    def show_game(self):
+
+        self.clear_screen()
+
         self.buttons = [[None for _ in range(3)] for _ in range(3)]
-
-        self.create_ui()
-        self.draw_board()
-
-    # ---------------- UI ----------------
-    def create_ui(self):
 
         # SCOREBOARD
         self.score_label = tk.Label(
@@ -37,51 +87,32 @@ class TicTacToeGUI:
         )
         self.score_label.grid(row=0, column=0, columnspan=3)
 
-        # DIFFICULTY MENU (RESTORED)
-        self.difficulty = tk.StringVar(value="Impossible")
-
-        diff_frame = tk.Frame(self.root, bg="black")
-        diff_frame.grid(row=1, column=0, columnspan=3)
-
-        tk.Label(diff_frame, text="Difficulty:", fg="white", bg="black").pack(side=tk.LEFT)
-
-        tk.OptionMenu(
-            diff_frame,
-            self.difficulty,
-            "Easy",
-            "Medium",
-            "Impossible"
-        ).pack(side=tk.LEFT)
-
         # BOARD
-        board_frame = tk.Frame(self.root, bg="black")
-        board_frame.grid(row=2, column=0, columnspan=3)
+        frame = tk.Frame(self.root, bg="black")
+        frame.grid(row=1, column=0, columnspan=3)
 
         for i in range(3):
             for j in range(3):
                 btn = tk.Button(
-                    board_frame,
+                    frame,
                     text="",
                     font=("Arial", 30, "bold"),
                     height=2,
                     width=5,
                     bg="black",
                     fg="white",
-                    activebackground="gray20",
                     command=lambda r=i, c=j: self.human_move(r, c)
                 )
                 btn.grid(row=i, column=j)
                 self.buttons[i][j] = btn
 
-        # RESTART BUTTON
         tk.Button(
             self.root,
-            text="Restart",
-            font=("Arial", 12, "bold"),
-            bg="gray20",
+            text="Back to Menu",
+            bg="gray",
             fg="white",
-            command=self.restart
-        ).grid(row=3, column=0, columnspan=3, pady=10)
+            command=self.show_menu
+        ).grid(row=2, column=0, columnspan=3, pady=10)
 
     # ---------------- HUMAN MOVE ----------------
     def human_move(self, r, c):
@@ -89,15 +120,13 @@ class TicTacToeGUI:
         if self.board[r][c] != EMPTY or terminal(self.board):
             return
 
-        self.animate_click(r, c)
-
         self.board = result(self.board, (r, c))
-        self.draw_board()
+        self.draw()
 
         if self.check_game_over():
             return
 
-        self.root.after(250, self.ai_move)
+        self.root.after(200, self.ai_move)
 
     # ---------------- AI MOVE ----------------
     def ai_move(self):
@@ -108,20 +137,20 @@ class TicTacToeGUI:
         diff = self.difficulty.get()
 
         if diff == "Easy":
-            move = random.choice(list(self.get_actions()))
+            move = random.choice(list(self.actions()))
         elif diff == "Medium":
-            move = minimax(self.board) if random.random() < 0.6 else random.choice(list(self.get_actions()))
+            move = minimax(self.board) if random.random() < 0.6 else random.choice(list(self.actions()))
         else:
             move = minimax(self.board)
 
         if move:
             self.board = result(self.board, move)
 
-        self.draw_board()
+        self.draw()
         self.check_game_over()
 
     # ---------------- ACTIONS ----------------
-    def get_actions(self):
+    def actions(self):
         return {
             (i, j)
             for i in range(3)
@@ -129,8 +158,8 @@ class TicTacToeGUI:
             if self.board[i][j] == EMPTY
         }
 
-    # ---------------- DRAW BOARD ----------------
-    def draw_board(self):
+    # ---------------- DRAW ----------------
+    def draw(self):
 
         for i in range(3):
             for j in range(3):
@@ -146,46 +175,11 @@ class TicTacToeGUI:
 
                 else:
                     self.buttons[i][j]["text"] = ""
-                    self.buttons[i][j]["fg"] = "white"
 
-    # ---------------- CLICK ANIMATION ----------------
-    def animate_click(self, r, c):
-        btn = self.buttons[r][c]
-        original = btn["bg"]
-
-        btn["bg"] = "yellow"
-        self.root.update()
-        self.root.after(80, lambda: btn.config(bg=original))
-
-    # ---------------- WIN HIGHLIGHT ----------------
-    def highlight_winner(self):
-        w = winner(self.board)
-        if not w:
-            return
-
-        lines = [
-            [(0,0),(0,1),(0,2)],
-            [(1,0),(1,1),(1,2)],
-            [(2,0),(2,1),(2,2)],
-            [(0,0),(1,0),(2,0)],
-            [(0,1),(1,1),(2,1)],
-            [(0,2),(1,2),(2,2)],
-            [(0,0),(1,1),(2,2)],
-            [(0,2),(1,1),(2,0)]
-        ]
-
-        for line in lines:
-            vals = [self.board[r][c] for r,c in line]
-            if vals == [w, w, w]:
-                for r,c in line:
-                    self.buttons[r][c]["bg"] = "green"
-
-    # ---------------- GAME OVER (NO POPUP NOW) ----------------
+    # ---------------- GAME OVER ----------------
     def check_game_over(self):
 
         if terminal(self.board):
-
-            self.highlight_winner()
 
             w = winner(self.board)
 
@@ -200,43 +194,35 @@ class TicTacToeGUI:
                 msg = "Draw!"
 
             self.update_score()
-            self.show_result_on_board(msg)
+            self.show_result(msg)
             return True
 
         return False
 
-    # ---------------- SHOW RESULT ON BOARD ----------------
-    def show_result_on_board(self, msg):
-
-        overlay = tk.Label(
-            self.root,
-            text=msg,
-            font=("Arial", 20, "bold"),
-            fg="yellow",
-            bg="black"
-        )
-
-        overlay.grid(row=4, column=0, columnspan=3)
-
-    # ---------------- SCORE UPDATE ----------------
+    # ---------------- SCORE ----------------
     def update_score(self):
         self.score_label.config(
             text=f"X: {self.x_score}   O: {self.o_score}   Draws: {self.draws}"
         )
 
-    # ---------------- RESTART ----------------
-    def restart(self):
-        self.board = initial_state()
+    # ---------------- RESULT ON BOARD ----------------
+    def show_result(self, msg):
+        tk.Label(
+            self.root,
+            text=msg,
+            font=("Arial", 18, "bold"),
+            fg="yellow",
+            bg="black"
+        ).grid(row=3, column=0, columnspan=3)
 
-        for i in range(3):
-            for j in range(3):
-                self.buttons[i][j]["bg"] = "black"
+    # ---------------- SCREEN RESET ----------------
+    def clear_screen(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
 
-        self.draw_board()
 
-
-# ---------------- RUN ----------------
+# ---------------- RUN APP ----------------
 if __name__ == "__main__":
     root = tk.Tk()
-    game = TicTacToeGUI(root)
+    app = TicTacToeApp(root)
     root.mainloop()
