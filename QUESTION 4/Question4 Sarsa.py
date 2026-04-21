@@ -19,12 +19,8 @@ class GridworldSARSA:
         self.epsilon = epsilon
         self.episodes = episodes
 
-        # Special rewards as described
         self.special_rewards = {"A": 10, "B": 5}
-
-        # Use positions consistent with typical 5x5 example:
-        # A at (0,0), B at (0,4) in a 5x5 (top row) layout.
-        # If your sheet defines different coordinates, update these.
+        
         self.state_A = (0, 0)
         self.state_B = (0, 4)
 
@@ -62,7 +58,7 @@ class GridworldSARSA:
         """Choose action using epsilon-greedy w.r.t Q."""
         if random.random() < self.epsilon:
             return random.choice(ACTIONS)
-        # greedy: break ties randomly to avoid bias
+       
         qs = [self.Q[(state, a)] for a in ACTIONS]
         max_q = max(qs)
         best_actions = [a for a in ACTIONS if self.Q[(state, a)] == max_q]
@@ -72,13 +68,12 @@ class GridworldSARSA:
         states = [(r, c) for r in range(self.n_rows) for c in range(self.n_cols)]
 
         for ep in range(self.episodes):
-            # Start in a random state (non-terminal not required here; treat all as continuing)
+            
             s = random.choice(states)
 
             a = self.epsilon_greedy_action(s)
 
-            # Run for a fixed horizon per episode (so it terminates even in continuing tasks).
-            # Common choice: a small multiple of state count.
+            
             horizon = self.n_rows * self.n_cols * 2
 
             for _ in range(horizon):
@@ -86,7 +81,7 @@ class GridworldSARSA:
                 a2 = self.epsilon_greedy_action(s2)
 
                 # SARSA update:
-                # Q(s,a) <- Q(s,a) + alpha * [ r + gamma*Q(s',a') - Q(s,a) ]
+              
                 old = self.Q[(s, a)]
                 target = r + self.gamma * self.Q[(s2, a2)]
                 self.Q[(s, a)] = old + self.alpha * (target - old)
@@ -125,18 +120,18 @@ class GridworldSARSA:
                 max_q = max(qs.values())
                 best = [a for a in ACTIONS if qs[a] == max_q]
 
-                # Join arrows with a space if multiple
-                policy[r][c] = " ".join(arrow_map[a] for a in best)
+              
+                policy[r][c] = " ".join(arrow_map[a] for a in best) #Joining Arrrows here  
         return policy
 
 
 def format_value_grid(V):
-    # Matches sample-style: numbers separated by spaces
+   
     for row in V:
         print(" ".join(f"{x:.2f}" for x in row))
 
 def print_policy(policy):
-    # simple grid print
+    #  grid print
     for row in policy:
         print("  ".join(cell if cell != "" else "·" for cell in row))
 
