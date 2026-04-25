@@ -14,5 +14,5 @@ This project implements an unbeatable Tic-Tac-Toe AI using the Minimax algorithm
 ## How to Run
 
 ```bash
-python runner.py
+python runner_gui.py
 ```
