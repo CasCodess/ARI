@@ -4,14 +4,14 @@
 
 ---
 
-## 👥 Group Information
+## Group Information
 
 **Group Name:
 **Members:
 
 ---
 
-## 📌 Assignment Overview
+## Assignment Overview
 
 This project covers four key areas of Artificial Intelligence:
 
@@ -24,7 +24,7 @@ All solutions are implemented in Python and organised into separate folders per 
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```bash
 .
@@ -58,18 +58,18 @@ All solutions are implemented in Python and organised into separate folders per 
 
 ---
 
-# 🧠 Question 1: Warehouse Search (Informed Search)
+# Question 1: Warehouse Search (Informed Search)
 
-### 🔍 Description
+### Description
 
 A warehouse robot must navigate from a **start point (A)** to a **goal (B)** while avoiding obstacles.
 
-### ⚙️ Algorithms Used
+### Algorithms Used
 
 * Greedy Best-First Search
 * A* Search
 
-### 📏 Heuristic
+### Heuristic
 
 Euclidean Distance:
 
@@ -77,32 +77,32 @@ $$
 h(n) = \sqrt{(x_1 - x_2)^2 + (y_1 - y_2)^2}
 $$
 
-### 📊 Output
+### Output
 
 * `warehouse_path.png` → A* result
 * `warehouse_path_greedy.png` → Greedy result
 
 ---
 
-# 📡 Question 2: Telecommunication Tower Placement (CSP)
+# Question 2: Telecommunication Tower Placement (CSP)
 
-### 🔍 Description
+### Description
 
 Place 8 towers on a 10×10 grid while satisfying spatial and terrain constraints.
 
-### ⚙️ Techniques Used
+### Techniques Used
 
 * Backtracking
 * Minimum Remaining Values (MRV)
 * Forward Checking
 
-### 🚧 Constraints
+### Constraints
 
 * No same row or column
 * No adjacent placement (including diagonals)
 * No placement on mountain cells
 
-### 🧪 Test Files
+### Test Files
 
 * `test_level1.py` (Easy)
 * `test_level2.py` (Medium)
@@ -110,28 +110,28 @@ Place 8 towers on a 10×10 grid while satisfying spatial and terrain constraints
 
 ---
 
-# 🎮 Question 3: Tic Tac Toe (Game Playing)
+# Question 3: Tic Tac Toe (Game Playing)
 
-### 🔍 Description
+### Description
 
 Implementation of a Tic Tac Toe AI system.
 
-### ⚙️ Features
+### Features
 
 * Game logic (`tictactoe.py`)
 * GUI interface (`runner_gui.py`)
 
 ---
 
-# 📈 Question 4: SARSA (Reinforcement Learning)
+# Question 4: SARSA (Reinforcement Learning)
 
-### 🔍 Description
+### Description
 
 Implementation of the SARSA algorithm for learning optimal policies.
 
 ---
 
- ▶️ How to Run
+  How to Run
 
 ### Question 1:
 
@@ -161,17 +161,17 @@ python Question4_Sarsa.py
 
 ---
 
- 📄 Final Submission
+  Final Submission
 
-* ✔️ Jupyter Notebooks for all questions
-* ✔️ Python implementations
-* ✔️ Visual outputs
-* ✔️ PDF version of notebook *(submitted separately)*
-* ✔️ GitHub repository link
+* Jupyter Notebooks for all questions
+* Python implementations
+* Visual outputs
+* PDF version of notebook *(submitted separately)*
+* GitHub repository link
 
 ---
 
-## 📌 Notes
+## Notes
 
 * Each group member contributed via GitHub commits
 * The project follows modular and structured design
